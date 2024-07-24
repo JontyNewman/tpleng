@@ -10,13 +10,6 @@ import (
 )
 
 func main() {
-	dog := struct {
-		name   string
-		isGood bool
-	}{
-		"Rex",
-		true,
-	}
 
 	template, err := io.ReadAll(os.Stdin)
 
@@ -24,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	parsed, err := tpleng.Parse(string(template), map[string]any{"int": 42, "string": "Good Growth", "struct": dog})
+	parsed, err := tpleng.Parse(string(template), map[string]string{"num": "42", "greetee": "Good Growth", "expression": "{{ .num }}"})
 
 	if err != nil {
 		log.Fatal(err)

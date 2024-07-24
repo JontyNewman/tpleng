@@ -5,7 +5,7 @@ import (
 	"unicode/utf8"
 )
 
-func Parse[V any](template string, vars map[string]V) (string, error) {
+func Parse(template string, vars map[string]string) (string, error) {
 
 	parsed := ""
 	parsing := false
@@ -21,7 +21,7 @@ func Parse[V any](template string, vars map[string]V) (string, error) {
 	return parsed, nil
 }
 
-func decodePhraseInString[V any](s string, vars map[string]V, parsing bool) (string, int, bool) {
+func decodePhraseInString(s string, vars map[string]string, parsing bool) (string, int, bool) {
 
 	if parsing {
 		return decodePhraseInStringParsing(s, vars)
@@ -64,7 +64,7 @@ func decodePhraseInStringEchoing(s string) (string, int, bool) {
 	return decoded, stride, parsing
 }
 
-func decodePhraseInStringParsing[V any](s string, vars map[string]V) (string, int, bool) {
+func decodePhraseInStringParsing(s string, vars map[string]string) (string, int, bool) {
 
 	expression := ""
 	stride := 0
@@ -97,7 +97,7 @@ func decodePhraseInStringParsing[V any](s string, vars map[string]V) (string, in
 	return decodeExpression(expression, vars), stride, parsing
 }
 
-func decodeExpression[V any](s string, vars map[string]V) string {
+func decodeExpression(s string, vars map[string]string) string {
 	result := ""
 	stride := 0
 
@@ -111,7 +111,12 @@ func decodeExpression[V any](s string, vars map[string]V) string {
 			key, width := decodeWord(s[i+width:])
 			w += width
 
-			result += fmt.Sprintf("%v", vars[key])
+			result = fmt.Sprintf("%v", vars[key])
+
+			if len(result) >= 4 && result[:2] == "{{" && result[len(result)-2:] == "}}" {
+				result = decodeExpression(result[2:len(result)-2], vars)
+			}
+
 		}
 	}
 
