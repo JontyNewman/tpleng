@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	parsed, err := tpleng.Parse(string(template), map[string]string{"num": "42", "greetee": "Good Growth", "expression": "{{ .num }}"})
+	parsed, err := tpleng.Parse(string(template), map[string]string{"num": "42", "greetee": "Good Growth", "expression": "{{ .recurse }}", "recurse": "{{ .num }}"})
 
 	if err != nil {
 		log.Fatal(err)

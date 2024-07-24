@@ -2,6 +2,7 @@ package tpleng
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -101,43 +102,85 @@ func decodeExpression(s string, vars map[string]string) string {
 	result := ""
 	stride := 0
 
+	fmt.Printf("expression: %s\n", s)
+
 	for i, w := 0, 0; i < len(s); i += w {
 		runeValue, width := utf8.DecodeRuneInString(s[i:])
 		w = width
 		stride += width
 
 		switch runeValue {
+		case ' ', '\n', '\t':
+			// Do nothing (ignore white space).
 		case '.':
 			key, width := decodeWord(s[i+width:])
 			w += width
+			stride += width
 
-			result = fmt.Sprintf("%v", vars[key])
+			fmt.Printf("dot: %s\n", key)
+
+			result = vars[key]
 
 			if len(result) >= 4 && result[:2] == "{{" && result[len(result)-2:] == "}}" {
 				result = decodeExpression(result[2:len(result)-2], vars)
 			}
+		case '|':
+			transform, width := decodeWord(s[i+width:])
+			fmt.Printf("transform: %s\n", transform)
+			w += width
 
+			result = performTransform(transform, result)
 		}
 	}
 
 	return result
 }
 
+func performTransform(transform string, input string) string {
+
+	output := input
+
+	switch transform {
+	case "uppercase":
+		output = strings.ToUpper(input)
+	case "lowercase":
+		output = strings.ToLower(input)
+	}
+
+	return output
+}
+
 func decodeWord(s string) (string, int) {
 	word := ""
 	stride := 0
+	ended := false
+
+	fmt.Printf("word pre: %s\n", s)
 
 	for i, w := 0, 0; i < len(s); i += w {
 		runeValue, width := utf8.DecodeRuneInString(s[i:])
-		w = width
-		stride += width
+
+		fmt.Printf("%s\n", string(runeValue))
 
 		switch runeValue {
-		case '|', ' ', '\n', '\t':
+		case ' ', '\n', '\t':
+			w = width
+			stride += width
+			// Do nothing (ignore white space)
+		case '|', '}':
+			ended = true
 		default:
+			w = width
+			stride += width
 			word += string(runeValue)
 		}
+
+		if ended {
+			break
+		}
 	}
+
+	fmt.Printf("word post: %s, %d\n", word, stride)
 
 	return word, stride
 }
