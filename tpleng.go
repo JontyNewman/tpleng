@@ -14,7 +14,6 @@ func Parse[V any](template string, vars map[string]V) (string, error) {
 		phrase, width, isParsing := decodePhraseInString(template[i:], vars, parsing)
 		stride = width
 		parsing = isParsing
-		fmt.Printf("parse: %s %d %t\n", phrase, stride, isParsing)
 		parsed += phrase
 
 	}
@@ -55,8 +54,6 @@ func decodePhraseInStringEchoing(s string) (string, int, bool) {
 		default:
 			decoded += string(runeValue)
 		}
-
-		fmt.Printf("echoing: %s %d %t\n", decoded, stride, parsing)
 
 		if parsing {
 			break
