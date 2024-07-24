@@ -11,7 +11,7 @@ func Parse[V any](template string, vars map[string]V) (string, error) {
 	parsing := false
 
 	for i, stride := 0, 0; i < len(template); i += stride {
-		phrase, width, isParsing := decodePhraseInString(template[i:], parsing)
+		phrase, width, isParsing := decodePhraseInString(template[i:], vars, parsing)
 		stride = width
 		parsing = isParsing
 		fmt.Printf("parse: %s %d %t\n", phrase, stride, isParsing)
@@ -22,10 +22,10 @@ func Parse[V any](template string, vars map[string]V) (string, error) {
 	return parsed, nil
 }
 
-func decodePhraseInString(s string, parsing bool) (string, int, bool) {
+func decodePhraseInString[V any](s string, vars map[string]V, parsing bool) (string, int, bool) {
 
 	if parsing {
-		return decodePhraseInStringParsing(s)
+		return decodePhraseInStringParsing(s, vars)
 	} else {
 		return decodePhraseInStringEchoing(s)
 	}
@@ -67,7 +67,7 @@ func decodePhraseInStringEchoing(s string) (string, int, bool) {
 	return decoded, stride, parsing
 }
 
-func decodePhraseInStringParsing(s string) (string, int, bool) {
+func decodePhraseInStringParsing[V any](s string, vars map[string]V) (string, int, bool) {
 
 	expression := ""
 	stride := 0
@@ -97,5 +97,45 @@ func decodePhraseInStringParsing(s string) (string, int, bool) {
 		}
 	}
 
-	return expression, stride, parsing
+	return decodeExpression(expression, vars), stride, parsing
+}
+
+func decodeExpression[V any](s string, vars map[string]V) string {
+	result := ""
+	stride := 0
+
+	for i, w := 0, 0; i < len(s); i += w {
+		runeValue, width := utf8.DecodeRuneInString(s[i:])
+		w = width
+		stride += width
+
+		switch runeValue {
+		case '.':
+			key, width := decodeWord(s[i+width:])
+			w += width
+
+			result += fmt.Sprintf("%v", vars[key])
+		}
+	}
+
+	return result
+}
+
+func decodeWord(s string) (string, int) {
+	word := ""
+	stride := 0
+
+	for i, w := 0, 0; i < len(s); i += w {
+		runeValue, width := utf8.DecodeRuneInString(s[i:])
+		w = width
+		stride += width
+
+		switch runeValue {
+		case '|', ' ', '\n', '\t':
+		default:
+			word += string(runeValue)
+		}
+	}
+
+	return word, stride
 }

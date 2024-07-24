@@ -24,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	parsed, err := tpleng.Parse(string(template), map[string]any{"int": 42, "string": "Hello, world!", "struct": dog})
+	parsed, err := tpleng.Parse(string(template), map[string]any{"int": 42, "string": "Good Growth", "struct": dog})
 
 	if err != nil {
 		log.Fatal(err)
